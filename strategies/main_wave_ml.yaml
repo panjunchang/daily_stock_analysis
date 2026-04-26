@@ -1,0 +1,69 @@
+# Main Wave ML Strategy — 主升浪 ML 策略
+# Uses ML model score (main_wave_ml_score) as primary signal.
+
+name: main_wave_ml
+display_name: 主升浪 ML 识别
+description: >
+  基于机器学习模型（XGBoost + Walk-Forward 验证）识别主升浪候选股。
+  结合量价特征、均线结构、MACD/RSI/KDJ 技术指标与市场环境特征，
+  输出 0-1 概率评分，并给出买入建议与风险提示。
+category: ml
+core_rules: [1, 2, 3, 4]
+required_tools:
+  - get_daily_history
+  - analyze_trend
+  - get_realtime_quote
+
+instructions: |
+  **主升浪 ML 识别策略（Main Wave ML Strategy）**
+
+  本策略融合机器学习评分与传统技术面分析，用于识别当前处于或即将进入
+  主升浪（大级别上涨行情）的股票。
+
+  ## 核心判断流程
+
+  ### 1. ML 概率评分（权重最高）
+  - ML 模型输出的 `ml_main_wave_score` 为 0-1 之间的概率值。
+  - 评分 ≥ 0.70：高概率主升浪候选，重点关注。
+  - 评分 0.50-0.70：中等信号，结合技术面判断。
+  - 评分 < 0.50：信号不足，建议观望。
+
+  ### 2. 技术面验证（用 analyze_trend + get_daily_history 确认）
+
+  **必要条件（任一不满足则降低看多权重）**：
+  - MA5 ≥ MA10 ≥ MA20（多头排列）
+  - 近30日内出现过至少一次放量（成交量 ≥ 近20日均量的 1.5 倍）
+  - MACD DIF > 0（零轴上方）
+
+  **加分项**：
+  - 近期创 60 日新高
+  - 缩量回调后放量突破
+  - RSI(12) 在 50-70 区间（强势未超买）
+  - KDJ J 值从低位回升（未超买）
+  - 布林带收口后放量上穿中轨
+
+  ### 3. 市场环境验证
+  - 上证指数在 MA20 上方时，买入信号可信度更高。
+  - 板块共振（同板块多只股票共同上涨）进一步加分。
+
+  ### 4. 风险过滤
+  - 股价 < 3 元，排除。
+  - ST / *ST 股票，排除。
+  - 价格距 MA5 乖离率 > 8%，提示追高风险。
+  - 近5日连续涨停后追入，风险极高。
+
+  ## 输出要求
+  - 给出 ML 概率评分与信号等级（高/中/低）。
+  - 说明触发的技术面加分/减分项。
+  - 给出建议买入区间（MA5/MA10 附近回踩）。
+  - 给出止损参考（MA20 下方或近期结构低点）。
+  - 给出目标价位参考（前高或斐波那契延伸位）。
+
+  ## sentiment_score 调整建议
+  - ML 评分 ≥ 0.70：`sentiment_score +15`
+  - ML 评分 0.50-0.70：`sentiment_score +8`
+  - ML 评分 < 0.50：`sentiment_score -5`
+  - 多头排列 + 放量突破确认：额外 `sentiment_score +10`
+  - MACD 零轴上金叉：额外 `sentiment_score +8`
+  - 价格严重偏离均线（乖离 > 8%）：`sentiment_score -8`
+  - 跌破 MA20 且 MACD 死叉：`sentiment_score -15`

@@ -25,6 +25,10 @@ pandas>=2.0.0               # 数据分析
 numpy>=1.24.0               # 数值计算
 json-repair>=0.55.1         # JSON 修复
 
+# ML 依赖 (主升浪识别模型)
+xgboost>=2.0.0              # XGBoost 分类器（主升浪 ML 模型）
+scikit-learn>=1.3.0         # 评估指标（AUC、AP）及特征工程工具
+
 # AI 分析
 litellm>=1.80.10            # Unified LLM client (Gemini/Anthropic/OpenAI/DeepSeek etc.)
 tiktoken>=0.8.0,<0.12.0    # BPE tokenizer for LLM token counting (pin <0.12 to avoid plugin registration issues, #537)
