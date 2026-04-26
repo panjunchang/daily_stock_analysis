@@ -268,7 +268,12 @@ class LabelGenerator:
 
     @staticmethod
     def _is_st_stock(name: str) -> bool:
-        """Detect ST / *ST stocks from their name."""
+        """Detect ST / *ST stocks from their name.
+
+        Python's str.startswith accepts a tuple of prefixes and returns True if
+        the string starts with ANY of them.  '*ST广田'.startswith(('ST', '*ST'))
+        returns True because the second pattern '*ST' matches.
+        """
         return name.strip().upper().startswith(("ST", "*ST"))
 
     def _mark_excluded(self, df: pd.DataFrame, is_st: bool) -> pd.Series:

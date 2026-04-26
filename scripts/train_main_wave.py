@@ -209,7 +209,15 @@ def cmd_score(args: argparse.Namespace) -> None:
 # ---------------------------------------------------------------------------
 
 def _fetch_history(code: str, start: str, end: "str | None") -> "object":
-    """Fetch daily OHLCV using the project's data provider stack."""
+    """Fetch daily OHLCV using the project's data provider stack.
+
+    Returns a pandas DataFrame or None.
+
+    Uses ``adjust='hfq'`` (后复权, backward/ex-post price adjustment) so that
+    historical prices are scaled to the current unadjusted price level.  This
+    ensures that percent-change features computed over long horizons remain
+    comparable and are not distorted by stock splits or dividend payouts.
+    """
     try:
         import akshare as ak
         import pandas as pd

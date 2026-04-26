@@ -43,6 +43,10 @@ logger = logging.getLogger(__name__)
 
 _DEFAULT_MODEL_DIR = Path(__file__).parent / "model_store"
 
+# Sentinel used to replace NaN feature values at inference time.
+# Must match the value used during training (see trainer._MISSING_SENTINEL).
+_MISSING_SENTINEL: float = -999.0
+
 
 class MainWavePredictor:
     """
@@ -203,12 +207,12 @@ class MainWavePredictor:
             return -1.0
 
         if self._feature_cols:
-            row = [features.get(col, -999) for col in self._feature_cols]
+            row = [features.get(col, _MISSING_SENTINEL) for col in self._feature_cols]
         else:
             row = list(features.values())
 
-        # Replace NaN with sentinel
-        row = [-999.0 if (v is None or (isinstance(v, float) and np.isnan(v))) else v for v in row]
+        # Replace NaN with sentinel (must match training-time sentinel)
+        row = [_MISSING_SENTINEL if (v is None or (isinstance(v, float) and np.isnan(v))) else v for v in row]
 
         X = np.array(row, dtype=float).reshape(1, -1)
         proba = self._model.predict_proba(X)[0][1]

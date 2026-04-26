@@ -57,6 +57,11 @@ _DEFAULT_MODEL_DIR = Path(__file__).parent / "model_store"
 # Minimum number of positive samples required in a training fold
 _MIN_POSITIVE_SAMPLES = 50
 
+# Sentinel value used to replace NaN features (XGBoost fillna strategy).
+# XGBoost can handle NaN natively; we use an explicit large-negative sentinel
+# so that the tree splits treat missing the same way as very low feature values.
+_MISSING_SENTINEL: float = -999.0
+
 
 @dataclass
 class TrainConfig:
@@ -272,9 +277,9 @@ class MainWaveTrainer:
             )
             return None
 
-        X_train = train_df[feature_cols].fillna(-999)
+        X_train = train_df[feature_cols].fillna(_MISSING_SENTINEL)
         y_train = train_df[label_col].astype(int)
-        X_val = val_df[feature_cols].fillna(-999)
+        X_val = val_df[feature_cols].fillna(_MISSING_SENTINEL)
         y_val = val_df[label_col].astype(int)
 
         # Compute scale_pos_weight for imbalanced classes
@@ -329,7 +334,7 @@ class MainWaveTrainer:
             logger.warning("No labelled data for final retraining")
             return None
 
-        X = clean[feature_cols].fillna(-999)
+        X = clean[feature_cols].fillna(_MISSING_SENTINEL)
         y = clean[label_col].astype(int)
 
         neg = int((y == 0).sum())

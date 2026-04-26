@@ -182,6 +182,8 @@ class FeatureBuilder:
             avg_gain = gain.rolling(p).mean()
             avg_loss = loss.rolling(p).mean()
             rs = avg_gain / avg_loss.replace(0, np.nan)
+            # Fill NaN with 50 (neutral RSI midpoint) for the initial warm-up
+            # period before sufficient history is available.
             df[f"RSI_{p}"] = (100 - (100 / (1 + rs))).fillna(50)
         return df
 
